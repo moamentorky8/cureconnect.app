@@ -20,14 +20,20 @@ jobs:
         with:
           flutter-version: '3.16.0'
           
-      # 4. بناء هيكل الفولدرات ودمج ملف الـ JSON السري
-      - name: Create Structure and JSON
+      # 4. بناء هيكل الفولدرات وإصلاح أخطاء المسارات أوتوماتيكياً
+      - name: Create Structure and Fix Paths
         run: |
           mkdir -p mobile_app/android/app
+          # وضع ملف الـ JSON السري
           echo "${{ secrets.GOOGLE_SERVICES_JSON }}" > mobile_app/android/app/google-services.json
+          # تعريف مسار الـ SDK
           echo "flutter.sdk=$FLUTTER_ROOT" > mobile_app/android/local.properties
+          
+          # التعديل السحري: استبدال flutterRoot بـ gradle.flutterSdk في ملف build.gradle
+          # ده بيحل مشكلة "Could not get unknown property flutterRoot" نهائياً
+          sed -i 's|\$flutterRoot|$gradle.flutterSdk|g' mobile_app/android/app/build.gradle
 
-      # 5. تحميل المكتبات (Firebase وغيرها)
+      # 5. تحميل المكتبات
       - name: Install dependencies
         run: |
           cd mobile_app
@@ -37,7 +43,6 @@ jobs:
       - name: Build APK
         run: |
           cd mobile_app
-          # السطر ده بيجبره يبني نسخة Release نهائية
           flutter build apk --release --no-tree-shake-icons
           
       # 7. رفع الملف عشان تقدر تحمله
