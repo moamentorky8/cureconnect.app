@@ -9,9 +9,9 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.10.0' # نسخة بتمشي مع المشاريع القديمة والجديدة
+          flutter-version: '3.16.0'
           
-      - name: Create Android Structure
+      - name: Add Google Services JSON
         run: |
           mkdir -p mobile_app/android/app
           echo "${{ secrets.GOOGLE_SERVICES_JSON }}" > mobile_app/android/app/google-services.json
@@ -24,11 +24,10 @@ jobs:
       - name: Build APK
         run: |
           cd mobile_app
-          # السطر ده هو السر.. هيحاول يبني الـ APK ويتجاهل مشاكل الـ Manifest
-          flutter build apk --release --no-tree-shake-icons --split-per-abi
+          flutter build apk --release --no-tree-shake-icons
           
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: release-apk
-          path: mobile_app/build/app/outputs/flutter-apk/
+          path: mobile_app/build/app/outputs/flutter-apk/app-release.apk
