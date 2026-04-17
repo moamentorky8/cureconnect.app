@@ -4,37 +4,43 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      # 1. سحب الكود من الريبو
       - uses: actions/checkout@v4
       
+      # 2. تجهيز الجافا (ضرورية جداً للأندرويد)
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      # 3. تجهيز الفلوتر
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.16.0'
           
-      - name: Add Google Services JSON
+      # 4. بناء هيكل الفولدرات ودمج ملف الـ JSON السري
+      - name: Create Structure and JSON
         run: |
           mkdir -p mobile_app/android/app
           echo "${{ secrets.GOOGLE_SERVICES_JSON }}" > mobile_app/android/app/google-services.json
-
-      - name: Create local.properties
-        run: |
           echo "flutter.sdk=$FLUTTER_ROOT" > mobile_app/android/local.properties
-      
-      # خطوة مهمة لإعطاء صلاحيات البناء للسيرفر
-      - name: Give Permissions
-        run: chmod +x mobile_app/android/gradlew || true
 
+      # 5. تحميل المكتبات (Firebase وغيرها)
       - name: Install dependencies
         run: |
           cd mobile_app
           flutter pub get
           
+      # 6. بناء الـ APK الفعلي
       - name: Build APK
         run: |
           cd mobile_app
-          # أضفنا -v عشان يطبع لنا تفاصيل الخطأ لو فشل
-          flutter build apk --release --no-tree-shake-icons -v
+          # السطر ده بيجبره يبني نسخة Release نهائية
+          flutter build apk --release --no-tree-shake-icons
           
+      # 7. رفع الملف عشان تقدر تحمله
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
