@@ -17,12 +17,13 @@ jobs:
         with:
           flutter-version: '3.16.0'
           
-      - name: Create Structure and Fix Paths
+      - name: Final Fix and Structure
         run: |
           mkdir -p mobile_app/android/app
           echo "${{ secrets.GOOGLE_SERVICES_JSON }}" > mobile_app/android/app/google-services.json
           echo "flutter.sdk=$FLUTTER_ROOT" > mobile_app/android/local.properties
-          sed -i 's|\$flutterRoot|$gradle.flutterSdk|g' mobile_app/android/app/build.gradle
+          sed -i '/apply from:.*flutter.gradle/d' mobile_app/android/app/build.gradle
+          echo 'apply from: "$FLUTTER_ROOT/packages/flutter_tools/gradle/flutter.gradle"' >> mobile_app/android/app/build.gradle
 
       - name: Install dependencies
         run: |
