@@ -6,12 +6,20 @@ if (localPropertiesFile.exists()) {
     }
 }
 
+// السطرين دول بيعرفوا البرنامج فين مكان الفلوتر من ملف local.properties اللي بنعمله في الـ Actions
+def flutterRoot = localProperties.getProperty('flutter.sdk')
+if (flutterRoot == null) {
+    throw new GradleException("Flutter SDK not found. Define location with flutter.sdk in local.properties file.")
+}
+
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'com.google.gms.google-services'
+// التعديل هنا: استخدام المتغير اللي عرفناه فوق
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
+    namespace "com.moamen.cureconnect" // إضافة الـ namespace عشان النسخ الجديدة
     compileSdkVersion 33
 
     defaultConfig {
