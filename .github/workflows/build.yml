@@ -16,11 +16,14 @@ jobs:
           mkdir -p mobile_app/android/app
           echo "${{ secrets.GOOGLE_SERVICES_JSON }}" > mobile_app/android/app/google-services.json
 
-      # الخطوة الجديدة والمهمة جداً لربط ملفات الـ Gradle
       - name: Create local.properties
         run: |
           echo "flutter.sdk=$FLUTTER_ROOT" > mobile_app/android/local.properties
-        
+      
+      # خطوة مهمة لإعطاء صلاحيات البناء للسيرفر
+      - name: Give Permissions
+        run: chmod +x mobile_app/android/gradlew || true
+
       - name: Install dependencies
         run: |
           cd mobile_app
@@ -29,8 +32,8 @@ jobs:
       - name: Build APK
         run: |
           cd mobile_app
-          # السطر ده دلوقت هيقدر يشوف ملفات الـ Gradle اللي ضفناها
-          flutter build apk --release --no-tree-shake-icons
+          # أضفنا -v عشان يطبع لنا تفاصيل الخطأ لو فشل
+          flutter build apk --release --no-tree-shake-icons -v
           
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
