@@ -17,37 +17,15 @@ jobs:
         with:
           flutter-version: '3.16.0'
           
-      - name: Force Build Android
+      - name: Reconstruct Android Project
         run: |
-          mkdir -p mobile_app/android/app
-          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" > mobile_app/android/app/google-services.json
-          
-          # مسح أي عك قديم وكتابة ملف build.gradle بيقرأ المسار من البيئة مباشرة
-          cat <<EOF > mobile_app/android/app/build.gradle
-          apply plugin: 'com.android.application'
-          apply plugin: 'kotlin-android'
-          apply plugin: 'com.google.gms.google-services'
-          
-          def flutterRoot = System.getenv('FLUTTER_ROOT')
-          apply from: "\$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
-
-          android {
-              namespace "com.moamen.cureconnect"
-              compileSdkVersion 33
-              defaultConfig {
-                  applicationId "com.moamen.cureconnect"
-                  minSdkVersion 21
-                  targetSdkVersion 33
-                  versionCode 1
-                  versionName "1.0"
-              }
-              buildTypes {
-                  release {
-                      signingConfig signingConfigs.debug
-                  }
-              }
-          }
-          EOF
+          cd mobile_app
+          # مسح فولدر الأندرويد القديم اللي فيه مشاكل
+          rm -rf android
+          # إعادة إنشاء مشروع أندرويد نضيف ومتوافق مع النسخة الحالية
+          flutter create . --platforms android
+          # إضافة ملف الـ JSON السري في مكانه الجديد
+          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" > android/app/google-services.json
 
       - name: Install dependencies
         run: |
@@ -57,8 +35,7 @@ jobs:
       - name: Build APK
         run: |
           cd mobile_app
-          # التعديل الجوهري: بنمرر الـ SDK كـ Argument صريح للأندرويد
-          flutter build apk --release --no-tree-shake-icons -Pflutter-root=$FLUTTER_ROOT
+          flutter build apk --release --no-tree-shake-icons
           
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
