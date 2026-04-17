@@ -17,26 +17,20 @@ jobs:
         with:
           flutter-version: '3.16.0'
           
-      - name: Force Fix Android Files
+      - name: Force Build Android
         run: |
           mkdir -p mobile_app/android/app
           echo "${{ secrets.GOOGLE_SERVICES_JSON }}" > mobile_app/android/app/google-services.json
-          echo "flutter.sdk=$FLUTTER_ROOT" > mobile_app/android/local.properties
           
-          # مسح ملف build.gradle اللي عامل مشاكل وكتابة نسخة جديدة سليمة 100%
+          # مسح أي عك قديم وكتابة ملف build.gradle بيقرأ المسار من البيئة مباشرة
           cat <<EOF > mobile_app/android/app/build.gradle
-          def localProperties = new Properties()
-          def localPropertiesFile = rootProject.file('local.properties')
-          if (localPropertiesFile.exists()) {
-              localPropertiesFile.withReader('UTF-8') { reader ->
-                  localProperties.load(reader)
-              }
-          }
-          def flutterRoot = localProperties.getProperty('flutter.sdk')
           apply plugin: 'com.android.application'
           apply plugin: 'kotlin-android'
           apply plugin: 'com.google.gms.google-services'
+          
+          def flutterRoot = System.getenv('FLUTTER_ROOT')
           apply from: "\$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
+
           android {
               namespace "com.moamen.cureconnect"
               compileSdkVersion 33
@@ -46,6 +40,11 @@ jobs:
                   targetSdkVersion 33
                   versionCode 1
                   versionName "1.0"
+              }
+              buildTypes {
+                  release {
+                      signingConfig signingConfigs.debug
+                  }
               }
           }
           EOF
@@ -58,7 +57,8 @@ jobs:
       - name: Build APK
         run: |
           cd mobile_app
-          flutter build apk --release --no-tree-shake-icons
+          # التعديل الجوهري: بنمرر الـ SDK كـ Argument صريح للأندرويد
+          flutter build apk --release --no-tree-shake-icons -Pflutter-root=$FLUTTER_ROOT
           
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
