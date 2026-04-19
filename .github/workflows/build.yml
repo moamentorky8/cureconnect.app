@@ -20,11 +20,8 @@ jobs:
       - name: Reconstruct Android Project
         run: |
           cd mobile_app
-          # مسح فولدر الأندرويد القديم اللي فيه مشاكل
           rm -rf android
-          # إعادة إنشاء مشروع أندرويد نضيف ومتوافق مع النسخة الحالية
           flutter create . --platforms android
-          # إضافة ملف الـ JSON السري في مكانه الجديد
           echo "${{ secrets.GOOGLE_SERVICES_JSON }}" > android/app/google-services.json
 
       - name: Install dependencies
