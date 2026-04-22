@@ -23,20 +23,21 @@ jobs:
           cd mobile_app
           flutter clean
           flutter pub get
-          
-      - name: Reconstruct Android (If missing)
+
+      - name: Reconstruct Android
         run: |
           cd mobile_app
           flutter create . --platforms android
           mkdir -p android/app
           echo "${{ secrets.GOOGLE_SERVICES_JSON }}" > android/app/google-services.json
+          chmod +x android/gradlew
 
       - name: Build APK
         run: |
           cd mobile_app
           flutter build apk --debug --no-tree-shake-icons --no-pub
-          
-      - name: Upload APK artifact
+
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: debug-apk
