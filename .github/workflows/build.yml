@@ -1,5 +1,6 @@
 name: Flutter Build APK
 on: [push]
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -17,25 +18,23 @@ jobs:
         with:
           flutter-version: '3.16.0'
           
-      - name: Reconstruct Android Project
-        run: |
-          cd mobile_app
-          rm -rf android
-          flutter create . --platforms android
-          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" > android/app/google-services.json
-
-      - name: Install dependencies
+      - name: Prepare Project
         run: |
           cd mobile_app
           flutter pub get
-          
+          # التأكد من وجود الفولدر قبل وضع ملف الجوجل
+          mkdir -p android/app
+          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" > android/app/google-services.json
+
       - name: Build APK
         run: |
           cd mobile_app
-          flutter build apk --release --no-tree-shake-icons
+          # بنستخدم --debug لو لسه مخلصتش الـ Signing بتاع الـ Release
+          flutter build apk --debug --no-tree-shake-icons
           
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: release-apk
-          path: mobile_app/build/app/outputs/flutter-apk/app-release.apk
+          # لاحظ تغيير المسار لـ debug-apk لو جربت الـ debug
+          path: mobile_app/build/app/outputs/flutter-apk/app-debug.apk
