@@ -1,40 +1,17 @@
-name: Flutter Build APK
-on: [push]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'zulu'
-          java-version: '17'
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.16.0'
-          
-      - name: Prepare Project
+- name: Prepare Flutter
         run: |
           cd mobile_app
+          flutter clean
           flutter pub get
-          # التأكد من وجود الفولدر قبل وضع ملف الجوجل
+          
+      - name: Reconstruct Android (If missing)
+        run: |
+          cd mobile_app
+          flutter create . --platforms android
           mkdir -p android/app
           echo "${{ secrets.GOOGLE_SERVICES_JSON }}" > android/app/google-services.json
 
       - name: Build APK
         run: |
           cd mobile_app
-          # بنستخدم --debug لو لسه مخلصتش الـ Signing بتاع الـ Release
-          flutter build apk --debug --no-tree-shake-icons
-          
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-apk
-          # لاحظ تغيير المسار لـ debug-apk لو جربت الـ debug
-          path: mobile_app/build/app/outputs/flutter-apk/app-debug.apk
+          flutter build apk --debug --no-tree-shake-icons --no-pub
