@@ -38,13 +38,20 @@ jobs:
             flutter create . --platforms=android
           fi
 
+          if [ ! -d android ]; then
+            echo "Android project is still missing after flutter create."
+            exit 1
+          fi
+
           mkdir -p android/app
 
           if [ -n "${{ secrets.GOOGLE_SERVICES_JSON }}" ]; then
             printf '%s' "${{ secrets.GOOGLE_SERVICES_JSON }}" > android/app/google-services.json
           fi
 
-          chmod +x android/gradlew
+          if [ -f android/gradlew ]; then
+            chmod +x android/gradlew
+          fi
 
       - name: Build APK
         run: flutter build apk --debug --no-tree-shake-icons
